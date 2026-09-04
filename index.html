@@ -1,0 +1,52 @@
+<html>
+<head>
+    <title>Track Me</title>
+    <style>
+        body {
+            background-image: url('https://example.com/path/to/your/image.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        h1, p {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+    <script>
+        function track() {
+            var ip = '<?php echo $_SERVER['REMOTE_ADDR']; ?>';
+            var location = '<?php echo $_SERVER['HTTP_REFERER']; ?>';
+            var data = 'IP: ' + ip + ', Location: ' + location;
+            var botToken = 'YOUR_TELEGRAM_BOT_TOKEN';
+            var chatId = 'YOUR_CHAT_ID';
+            fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: data
+                })
+            });
+        }
+    </script>
+</head>
+<body onload="track()">
+    <div>
+        <h1>Welcome!</h1>
+        <p>Thank you for visiting.</p>
+    </div>
+</body>
+</html>
