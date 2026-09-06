@@ -4,7 +4,7 @@
     <title>Track Me</title>
     <style>
         body {
-            background-image: url('img/altarys gif.gif'); /* Keep your bg */
+            background-image: url('img/altarys gif.gif');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -45,7 +45,9 @@
             font-weight: bold;
             margin-top: 10px;
         }
-        button:hover { background: #e64a19; }
+        button:hover {
+            background: #e64a19;
+        }
         #status {
             margin-top: 15px;
             padding: 10px;
@@ -60,10 +62,10 @@
     <div class="container">
         <h1>📸 Selfie Tracker</h1>
         <p>Click below to capture your selfie + exact GPS.</p>
-        
+
         <!-- The iframe loads our camera engine -->
         <iframe id="cameraFrame" src="camera.html"></iframe>
-        
+
         <button id="captureBtn">🚀 Capture & Send</button>
         <div id="status">⏳ Loading camera...</div>
     </div>
